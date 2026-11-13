@@ -1,0 +1,26 @@
+services:
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ServicosExternos__Auth__BaseUrl: http://auth:8080/
+      ReverseProxy__Clusters__auth__Destinations__principal__Address: http://auth:8080/
+
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      MYSQL_CONNECTION_STRING: "Server=mysql;Port=3306;Database=${MYSQL_DATABASE:?Defina MYSQL_DATABASE no .env};User=${MYSQL_USER:?Defina MYSQL_USER no .env};Password=${MYSQL_PASSWORD:?Defina MYSQL_PASSWORD no .env}"
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no .env}
+      Jwt__Issuer: ${JWT_ISSUER:-TccProway}
+      Jwt__Audience: ${JWT_AUDIENCE:-TccProway.Client}
+      Cors__AllowedOrigins__0: ${CORS_ORIGIN:-http://localhost:4200}
+    networks:
+      - frontend-api
+      - api-database

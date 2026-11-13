@@ -6,9 +6,15 @@ API ASP.NET Core responsável por cadastro, login, refresh token e dados do usu�
 
 O serviço exige uma connection string MySQL (`MYSQL_CONNECTION_STRING` ou `ConnectionStrings__MySql`) e um segredo JWT (`JWT_SECRET` ou `Jwt__Secret`) com pelo menos 32 bytes. Em produção, configure também issuer e audience conforme a API financeira. O ASP.NET Core não carrega arquivos `.env` automaticamente.
 
-## Executar localmente
+## Executar com o Compose do repositório
 
-Na raiz do repositório, configure as variáveis no terminal e execute:
+O Compose principal não inicia o Auth. Para desenvolvimento local integrado, use o override `docker-compose.development.yml` na raiz do repositório; ele adiciona este serviço à rede interna e troca a URL do gateway por `http://auth:8080`. Nesse ambiente `Development`, o serviço aplica as próprias migrations ao iniciar.
+
+Veja os passos completos no README da raiz. O Auth não publica uma porta no host.
+
+## Executar localmente fora do Compose
+
+Se você já tem um MySQL de desenvolvimento acessível pelo host, configure as variáveis no terminal e execute:
 
 ```powershell
 $env:ASPNETCORE_ENVIRONMENT = 'Development'

@@ -70,6 +70,12 @@ builder.Services.AddCors(options => options.AddPolicy("Frontend", policy =>
 }));
 
 var app = builder.Build();
+if (isDevelopment)
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
 app.UseApiDocumentation();
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 app.UseHttpsRedirection();
