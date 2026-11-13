@@ -12,6 +12,7 @@ TestResults/
 .env.*
 !.env.example
 appsettings.*.local.json
+/demo-credentials.local.json
 
 # Frontend
 node_modules/

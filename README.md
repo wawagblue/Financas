@@ -57,6 +57,7 @@ frontend/              Aplicação Angular
 ├── src/app/core/       Autenticação, interceptor JWT e serviços HTTP
 ├── Dockerfile          Build Angular + Nginx
 └── nginx.conf          Proxy de /api e /gateway para a API
+scripts/popular-demo.ps1  Cria uma conta local e dados fictícios para demonstração
 docker-compose.yml
 .env.example
 ```
@@ -97,6 +98,24 @@ npm start
 ```
 
 Abra **http://localhost:4200**. O proxy de desenvolvimento encaminha `/api` e `/gateway` para `http://localhost:8081`. Access e refresh tokens ficam em memória; a renovação é tentada automaticamente após uma resposta `401`, e atualizar a página encerra a sessão local.
+
+### Dados de demonstração
+
+Depois de iniciar o frontend, a API, o banco e o serviço Auth configurado no gateway, confira primeiro a prévia:
+
+```powershell
+.\scripts\popular-demo.ps1 -Preview
+```
+
+Para criar a conta de demonstração e preencher o app com dados fictícios:
+
+```powershell
+.\scripts\popular-demo.ps1
+```
+
+O script registra `demo@financas.test` no Auth, gera uma senha aleatória e guarda as credenciais em `demo-credentials.local.json`, na raiz do repositório. O arquivo está no `.gitignore`; use-o para entrar no app e **não o publique nem compartilhe**. Nenhuma conta ou senha vem pronta no repositório público. Se o e-mail já estiver cadastrado, use uma conta sua com `-UsarContaExistente -Email seu@email` e informe a senha no prompt.
+
+Os exemplos cobrem seis meses de receitas e despesas, quatro orçamentos, três despesas recorrentes e a meta “Reserva de emergência”. O script evita duplicar itens se for executado novamente. Para usar outro endereço do frontend, passe `-BaseUrl`, por exemplo `-BaseUrl http://localhost:4300`.
 
 ### Fora do Docker (Visual Studio / `dotnet run`)
 
