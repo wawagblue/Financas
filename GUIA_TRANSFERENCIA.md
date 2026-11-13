@@ -26,7 +26,7 @@ Com Docker Desktop, o backend, MySQL e frontend podem ser compilados sem instala
    [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
    ```
 
-4. Configure **o mesmo** `JWT_SECRET`, `JWT_ISSUER` e `JWT_AUDIENCE` no serviço de autenticação. O endereço padrão dele é `http://host.docker.internal:8080/` (`AUTH_URL` no `.env`). Os serviços de IA + WhatsApp e Open Finance também precisam estar executando nos endereços configurados para aparecerem como disponíveis.
+4. Configure **o mesmo** `JWT_SECRET`, `JWT_ISSUER` e `JWT_AUDIENCE` no serviço de autenticação. Defina `AUTH_URL`, `IA_WHATSAPP_URL` e `OPEN_FINANCE_URL` com os endereços HTTPS reais dos serviços; fora de `Development`, a API rejeita URLs HTTP ou ausentes. Configure `CORS_ORIGIN` com a origem exata do frontend.
 5. As portas padrão do frontend e da API são 4200 e 8081. A API publica 8081 apenas em loopback; o MySQL não publica porta no host.
 6. Inicie a plataforma:
 
@@ -34,7 +34,7 @@ Com Docker Desktop, o backend, MySQL e frontend podem ser compilados sem instala
    docker compose up --build -d
    ```
 
-O Docker inicia o MySQL, API e frontend. A API aplica as migrações ao iniciar. As redes `frontend-api` e `api-database` limitam a comunicação: Nginx alcança a API, e o banco só é alcançado pela API. Swagger permanece desligado fora de Development.
+O Docker inicia o MySQL, API e frontend. A API aplica as migrações ao iniciar. As redes `frontend-api` e `api-database` limitam a comunicação: Nginx alcança a API, e o banco só é alcançado pela API. Swagger permanece desligado fora de Development. O Nginx deste Compose serve HTTP; TLS e HSTS exigem uma configuração de TLS de borda antes de publicar na internet.
 
 ## Endereços
 

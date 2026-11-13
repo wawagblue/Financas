@@ -24,6 +24,13 @@ public class ApiFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Testing");
         builder.UseSetting("JWT_SECRET", "local_test_secret_value_at_least_32_bytes_long");
+        builder.UseSetting("ServicosExternos:Auth:BaseUrl", "https://auth.test/");
+        builder.UseSetting("ServicosExternos:IaWhatsApp:BaseUrl", "https://ia.test/");
+        builder.UseSetting("ServicosExternos:OpenFinance:BaseUrl", "https://open-finance.test/");
+        builder.UseSetting("ReverseProxy:Clusters:auth:Destinations:principal:Address", "https://auth.test/");
+        builder.UseSetting("ReverseProxy:Clusters:ia-whatsapp:Destinations:principal:Address", "https://ia.test/");
+        builder.UseSetting("ReverseProxy:Clusters:open-finance:Destinations:principal:Address", "https://open-finance.test/");
+        builder.UseSetting("Cors:AllowedOrigins:0", "https://frontend.test");
 
         builder.ConfigureTestServices(services =>
         {

@@ -80,7 +80,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-Inicie também o serviço de autenticação com os mesmos valores de `JWT_SECRET`, `JWT_ISSUER` e `JWT_AUDIENCE`. O frontend/Nginx fica em **http://localhost:4200**. A API financeira fica limitada a **127.0.0.1:8081** para desenvolvimento local; o acesso publicado para clientes passa pelo Nginx. O Swagger só é habilitado em `Development`. O MySQL não publica porta no host e só recebe conexões da API pela rede interna.
+Inicie também os três serviços integrados com URLs HTTPS em `AUTH_URL`, `IA_WHATSAPP_URL` e `OPEN_FINANCE_URL`; fora de `Development`, a API recusa iniciar se qualquer URL estiver ausente ou usar HTTP. Configure `CORS_ORIGIN` com a origem exata do frontend. O frontend/Nginx fica em **http://localhost:4200** neste Compose (TLS de borda não está configurado). A API financeira fica limitada a **127.0.0.1:8081** para desenvolvimento local; o acesso publicado para clientes passa pelo Nginx. O Swagger só é habilitado em `Development`. O MySQL não publica porta no host e só recebe conexões da API pela rede interna.
+
+O Nginx aplica CSP sem `unsafe-eval`, proteção contra MIME sniffing e framing, política de referrer/permissões, limite de corpo de 1 MiB, timeouts e rate limits separados para login, cadastro e refresh. `unsafe-inline` é permitido somente em estilos porque o Angular injeta estilos de componentes em elementos `<style>` durante a execução. HSTS depende de TLS e não é enviado enquanto o Nginx servir apenas HTTP.
 
 As migrações do banco são aplicadas automaticamente quando a API sobe.
 
@@ -127,9 +129,10 @@ Definidas no arquivo `.env` (copiado de `.env.example`). **Nunca commite o `.env
 | `MYSQL_ROOT_PASSWORD` | Senha do root do MySQL | — |
 | `API_PORTA` | Porta loopback da API para desenvolvimento local | `8081` |
 | `FRONTEND_PORTA` | Porta do frontend na sua máquina | `4200` |
-| `AUTH_URL` | URL do serviço de Autenticação | `http://host.docker.internal:8080/` |
-| `IA_WHATSAPP_URL` | URL do serviço de IA + WhatsApp | `http://host.docker.internal:5002/` |
-| `OPEN_FINANCE_URL` | URL do serviço de Open Finance | `http://host.docker.internal:5003/` |
+| `AUTH_URL` | URL HTTPS do serviço de Autenticação | — |
+| `IA_WHATSAPP_URL` | URL HTTPS do serviço de IA + WhatsApp | — |
+| `OPEN_FINANCE_URL` | URL HTTPS do serviço de Open Finance | — |
+| `CORS_ORIGIN` | Origem exata autorizada para CORS | `http://localhost:4200` |
 
 > Mudar a senha no `.env` depois que o banco já foi criado **não** altera a senha no MySQL. Para recriar o banco, use `docker compose down -v`.
 

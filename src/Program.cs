@@ -3,11 +3,14 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Financas;
 using Financas.Data;
+using Financas.MicroServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+ServicosExternosOptions.ValidarUrlsHttps(builder.Configuration, builder.Environment.IsDevelopment());
 
 builder.Services
     .AddControllers()
@@ -24,6 +27,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddInfra(builder.Configuration);
+
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
+{
+    if (corsOrigins.Length > 0)
+        policy.WithOrigins(corsOrigins).AllowAnyHeader().AllowAnyMethod();
+}));
 
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? builder.Configuration["JWT_SECRET"];
 if (string.IsNullOrWhiteSpace(jwtSecret) || Encoding.UTF8.GetByteCount(jwtSecret) < 32)
@@ -60,6 +70,7 @@ if (app.Configuration.GetValue<bool>("Database:AplicarMigracoesAoIniciar"))
 }
 
 app.UseExceptionHandler();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 

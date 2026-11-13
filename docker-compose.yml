@@ -32,12 +32,13 @@ services:
       JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no .env}
       JWT_ISSUER: ${JWT_ISSUER:-TccProway}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-TccProway.Client}
-      ServicosExternos__Auth__BaseUrl: ${AUTH_URL:-http://host.docker.internal:8080/}
-      ServicosExternos__IaWhatsApp__BaseUrl: ${IA_WHATSAPP_URL:-http://host.docker.internal:5002/}
-      ServicosExternos__OpenFinance__BaseUrl: ${OPEN_FINANCE_URL:-http://host.docker.internal:5003/}
-      ReverseProxy__Clusters__auth__Destinations__principal__Address: ${AUTH_URL:-http://host.docker.internal:8080/}
-      ReverseProxy__Clusters__ia-whatsapp__Destinations__principal__Address: ${IA_WHATSAPP_URL:-http://host.docker.internal:5002/}
-      ReverseProxy__Clusters__open-finance__Destinations__principal__Address: ${OPEN_FINANCE_URL:-http://host.docker.internal:5003/}
+      ServicosExternos__Auth__BaseUrl: ${AUTH_URL:?Defina AUTH_URL com endereço HTTPS}
+      ServicosExternos__IaWhatsApp__BaseUrl: ${IA_WHATSAPP_URL:?Defina IA_WHATSAPP_URL com endereço HTTPS}
+      ServicosExternos__OpenFinance__BaseUrl: ${OPEN_FINANCE_URL:?Defina OPEN_FINANCE_URL com endereço HTTPS}
+      ReverseProxy__Clusters__auth__Destinations__principal__Address: ${AUTH_URL:?Defina AUTH_URL com endereço HTTPS}
+      ReverseProxy__Clusters__ia-whatsapp__Destinations__principal__Address: ${IA_WHATSAPP_URL:?Defina IA_WHATSAPP_URL com endereço HTTPS}
+      ReverseProxy__Clusters__open-finance__Destinations__principal__Address: ${OPEN_FINANCE_URL:?Defina OPEN_FINANCE_URL com endereço HTTPS}
+      Cors__AllowedOrigins__0: ${CORS_ORIGIN:-http://localhost:4200}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

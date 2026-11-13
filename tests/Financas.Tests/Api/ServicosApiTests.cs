@@ -77,4 +77,23 @@ public class ServicosApiTests
         resposta.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task Cors_permite_somente_origem_configurada()
+    {
+        using var factory = new ApiFactory();
+        using var client = factory.CreateClient();
+
+        using var permitido = new HttpRequestMessage(HttpMethod.Get, "/api/servicos/status");
+        permitido.Headers.Add("Origin", "https://frontend.test");
+        using var respostaPermitida = await client.SendAsync(permitido);
+
+        using var bloqueado = new HttpRequestMessage(HttpMethod.Get, "/api/servicos/status");
+        bloqueado.Headers.Add("Origin", "https://evil.test");
+        using var respostaBloqueada = await client.SendAsync(bloqueado);
+
+        respostaPermitida.Headers.GetValues("Access-Control-Allow-Origin").Should().ContainSingle()
+            .Which.Should().Be("https://frontend.test");
+        respostaBloqueada.Headers.Contains("Access-Control-Allow-Origin").Should().BeFalse();
+    }
+
 }
