@@ -6,6 +6,9 @@ obj/
 *.user
 *.suo
 TestResults/
+.tools/
+/src/
+/database/
 
 # Segredos
 .env

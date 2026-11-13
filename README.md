@@ -23,6 +23,8 @@ Frontend (Angular) ──► Serviço principal ──► MySQL
 
 Quando um dos outros serviços está fora do ar, a API não quebra: `/api/servicos/status` informa que ele está indisponível, e o gateway responde `502`.
 
+O código do serviço de autenticação também está em `services/auth`. O Compose principal inicia frontend, API financeira e MySQL; a URL do Auth usada pelo gateway continua configurada por `AUTH_URL` e deve apontar para o serviço Auth da implantação.
+
 ## Tecnologias
 
 - **Backend:** C# / ASP.NET Core Web API (.NET 10)
@@ -36,27 +38,15 @@ Quando um dos outros serviços está fora do ar, a API não quebra: `/api/servic
 ## Estrutura do projeto
 
 ```
-src/
-├── Controllers/       Endpoints da API
-├── Contracts/         DTOs de request/response
-├── Models/            Entidades e enums
-├── Services/          Regras de negócio
-├── Repositories/      Interfaces e implementações de acesso a dados
-├── Data/              DbContext, configurações do EF e Migrations
-├── MicroServices/     Clientes HTTP dos outros microserviços
-│   ├── Auth/
-│   ├── IaWhatsApp/
-│   └── OpenFinance/
-├── Common/            Tipos compartilhados
-├── DependencyInjection.cs
-├── Program.cs
-└── Dockerfile
-tests/
-└── Financas.Tests/    Testes automatizados
+services/
+├── finance-api/       API financeira e gateway YARP
+└── auth/              Serviço de autenticação e usuários
 frontend/              Aplicação Angular
 ├── src/app/core/       Autenticação, interceptor JWT e serviços HTTP
 ├── Dockerfile          Build Angular + Nginx
 └── nginx.conf          Proxy de /api e /gateway para a API
+tests/
+└── Financas.Tests/    Testes automatizados
 scripts/popular-demo.ps1  Cria uma conta local e dados fictícios para demonstração
 docker-compose.yml
 .env.example
@@ -122,8 +112,8 @@ Os exemplos cobrem seis meses de receitas e despesas, quatro orçamentos, três 
 O `.env` é lido só pelo Docker Compose. O Compose não publica a porta do MySQL; por isso, `dotnet run` diretamente no host requer um banco de desenvolvimento separado e uma connection string em *user-secrets*. O fluxo recomendado é executar API, banco e frontend pelo Compose.
 
 ```bash
-dotnet user-secrets set "ConnectionStrings:Financas" "<connection string do banco de desenvolvimento>" --project src
-dotnet run --project src
+dotnet user-secrets set "ConnectionStrings:Financas" "<connection string do banco de desenvolvimento>" --project services/finance-api
+dotnet run --project services/finance-api
 ```
 
 Acesse o Swagger em **http://localhost:5030/swagger**.

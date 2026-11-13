@@ -20,7 +20,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: src/Dockerfile
+      dockerfile: services/finance-api/Dockerfile
     depends_on:
       mysql:
         condition: service_healthy

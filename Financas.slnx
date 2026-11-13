@@ -1,6 +1,7 @@
 <Solution>
-  <Folder Name="/src/">
-    <Project Path="src/Financas.csproj" />
+  <Folder Name="/services/">
+    <Project Path="services/finance-api/Financas.csproj" />
+    <Project Path="services/auth/TccProway.Api.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Financas.Tests/Financas.Tests.csproj" />
@@ -8,6 +9,5 @@
   <Folder Name="/Solution Items/">
     <File Path="docker-compose.yml" />
     <File Path=".env.example" />
-    <File Path="CLAUDE.md" />
   </Folder>
 </Solution>
