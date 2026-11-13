@@ -1,0 +1,224 @@
+@if (isStatusPage) {
+  <main class="public-status-page">
+    <a class="brand" href="/" aria-label="Finanças, início"><span class="brand-mark">f</span><span>finanças<span class="brand-dot">.</span></span></a>
+    <section class="public-status-card" aria-labelledby="status-title">
+      <span class="status-page-mark">↗</span>
+      <span class="eyebrow">FINANÇAS PESSOAIS</span>
+      <h1 id="status-title">Status dos serviços</h1>
+      <p class="status-page-subtitle">Disponibilidade dos serviços da plataforma.</p>
+      <div class="public-status-list">
+        @for (nome of servicosMonitorados; track nome) {
+          @let estado = statusPorNome()[nome];
+          <div class="public-status-row">
+            <span>{{ nome }}</span>
+            <span class="public-status-value" [class.status-is-online]="estado?.disponivel" [class.status-is-offline]="estado && !estado.disponivel">
+              <i></i>{{ consultandoServicos() ? 'Verificando' : estado?.disponivel ? 'Online' : estado ? 'Indisponível' : 'Aguardando' }}
+            </span>
+          </div>
+        }
+      </div>
+      <div class="public-status-footer">
+        <span>{{ atualizadoEm() ? 'Última verificação às ' + atualizadoEm() : 'Consultando serviços…' }}</span>
+        <button type="button" (click)="atualizarStatusServicos()" [disabled]="consultandoServicos()">{{ consultandoServicos() ? 'Atualizando…' : 'Atualizar' }}</button>
+      </div>
+    </section>
+    <span class="status-page-caption">Acompanhe as atualizações por aqui.</span>
+  </main>
+} @else if (!auth.session()) {
+  <main class="auth-page">
+    <section class="auth-story">
+      <div class="brand brand-light">
+        <span class="brand-mark">f</span>
+        <span>finanças<span class="brand-dot">.</span></span>
+      </div>
+
+      <div class="story-copy">
+        <span class="eyebrow eyebrow-light">SEU DINHEIRO, NO SEU RITMO</span>
+        <h1>Clareza para<br />escolher o<br /><em>próximo passo.</em></h1>
+        <p>Um lugar simples para acompanhar o que entra, o que sai e o que você está construindo.</p>
+      </div>
+
+      <div class="story-preview" aria-hidden="true">
+        <div class="preview-top"><span>Saldo do mês</span><span class="preview-pill">● atualizado</span></div>
+        <strong>R$ 4.280,50</strong>
+        <div class="preview-chart">
+          <i style="--bar: 42%"></i><i style="--bar: 67%"></i><i style="--bar: 51%"></i><i style="--bar: 84%"></i><i style="--bar: 59%"></i><i style="--bar: 100%"></i><i style="--bar: 73%"></i>
+        </div>
+        <div class="preview-months"><span>JUN</span><span>JUL</span><span>AGO</span><span>SET</span><span>OUT</span><span>NOV</span><span>DEZ</span></div>
+      </div>
+      <div class="story-footer"><span>Feito para uma vida financeira mais leve.</span><span>01 / 01</span></div>
+    </section>
+
+    <section class="auth-panel">
+      <div class="mobile-brand brand">
+        <span class="brand-mark">f</span><span>finanças<span class="brand-dot">.</span></span>
+      </div>
+      <div class="auth-card">
+        <span class="eyebrow">{{ modoAcesso() === 'entrar' ? 'BEM-VINDO DE VOLTA' : 'COMECE POR AQUI' }}</span>
+        <h2>{{ modoAcesso() === 'entrar' ? 'Entre na sua conta' : 'Crie sua conta' }}</h2>
+        <p class="auth-subtitle">{{ modoAcesso() === 'entrar' ? 'Acompanhe suas finanças com mais tranquilidade.' : 'Leva só um minuto para organizar suas finanças.' }}</p>
+
+        @if (mensagemErro()) { <div class="alert alert-error" role="alert">{{ mensagemErro() }}</div> }
+        @if (mensagemSucesso()) { <div class="alert alert-success" role="status">{{ mensagemSucesso() }}</div> }
+
+        <form class="auth-form" (ngSubmit)="modoAcesso() === 'entrar' ? entrar() : cadastrar()">
+          @if (modoAcesso() === 'criar') {
+            <label for="nome">Como podemos te chamar?</label>
+            <input id="nome" type="text" autocomplete="name" placeholder="Seu nome" [ngModel]="nome()" (ngModelChange)="nome.set($event)" name="nome" required maxlength="120" />
+          }
+          <label for="email">E-mail</label>
+          <input id="email" type="email" autocomplete="email" placeholder="voce@exemplo.com" [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" required />
+          <label for="senha">Senha</label>
+          <input id="senha" type="password" [attr.autocomplete]="modoAcesso() === 'entrar' ? 'current-password' : 'new-password'" placeholder="Sua senha" [ngModel]="senha()" (ngModelChange)="senha.set($event)" name="senha" required minlength="8" />
+          @if (modoAcesso() === 'entrar') {
+            <div class="form-note"><span class="lock-icon">▣</span> Seus dados ficam protegidos pela sua conta.</div>
+          }
+          <button class="button button-primary auth-submit" type="submit" [disabled]="enviando() || !email() || !senha() || (modoAcesso() === 'criar' && !nome())">
+            {{ enviando() ? 'Aguarde…' : modoAcesso() === 'entrar' ? 'Entrar na minha conta' : 'Criar conta grátis' }}
+            @if (!enviando()) { <span aria-hidden="true">↗</span> }
+          </button>
+        </form>
+        <div class="auth-switch">
+          {{ modoAcesso() === 'entrar' ? 'Ainda não tem uma conta?' : 'Já tem uma conta?' }}
+          <button type="button" (click)="trocarModo()">{{ modoAcesso() === 'entrar' ? 'Criar conta' : 'Entrar' }}</button>
+        </div>
+        <p class="auth-legal">Ao continuar, você concorda em usar este ambiente de demonstração para organizar suas finanças.</p>
+      </div>
+      <div class="auth-bottom"><span>FINANÇAS PESSOAIS</span><span>SEU ESPAÇO, SEU TEMPO</span></div>
+    </section>
+  </main>
+} @else {
+  <div class="dashboard-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Finanças, início"><span class="brand-mark">f</span><span>finanças<span class="brand-dot">.</span></span></a>
+      <div class="sidebar-label">MENU</div>
+      <nav class="side-nav" aria-label="Navegação principal">
+        <button class="nav-item" [class.active]="pagina() === 'inicio'" type="button" (click)="selecionarPagina('inicio')"><span class="nav-icon">◫</span> Visão geral</button>
+        <button class="nav-item" [class.active]="pagina() === 'transacoes'" type="button" (click)="selecionarPagina('transacoes')"><span class="nav-icon">↕</span> Transações</button>
+        <button class="nav-item" [class.active]="pagina() === 'planejamento'" type="button" (click)="selecionarPagina('planejamento')"><span class="nav-icon">◎</span> Planejamento</button>
+        <button class="nav-item" [class.active]="pagina() === 'relatorios'" type="button" (click)="selecionarPagina('relatorios')"><span class="nav-icon">▥</span> Relatórios</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="help-card"><span class="help-icon">✳</span><strong>Um passo de cada vez</strong><p>Pequenas escolhas também constroem grandes planos.</p></div>
+        <button class="profile-button" type="button" (click)="sair()">
+          <span class="avatar">{{ (auth.user()?.nome || 'U').slice(0, 1).toUpperCase() }}</span>
+          <span class="profile-copy"><strong>{{ auth.user()?.nome || 'Minha conta' }}</strong><small>{{ auth.user()?.email || 'Sessão ativa' }}</small></span>
+          <span class="logout-icon" aria-hidden="true">↗</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="dashboard-main" id="inicio">
+      <header class="topbar">
+        <div><span class="eyebrow">{{ hoje | uppercase }}</span><h1>{{ pagina() === 'inicio' ? 'Visão geral' : pagina() === 'transacoes' ? 'Transações' : pagina() === 'planejamento' ? 'Planejamento' : 'Relatórios' }}</h1></div>
+        <div class="topbar-actions"><span class="secure-tag"><i></i> Seus dados estão seguros</span>@if (pagina() === 'inicio' || pagina() === 'transacoes') { <button class="button button-primary new-transaction" type="button" (click)="abrirNovaTransacao()"><span>＋</span> Nova transação</button> }</div>
+      </header>
+
+      @if (mensagemErro()) { <div class="alert alert-error dashboard-alert" role="alert">{{ mensagemErro() }}</div> }
+      @if (mensagemSucesso()) { <div class="alert alert-success dashboard-alert" role="status">{{ mensagemSucesso() }}</div> }
+
+      @if (pagina() === 'inicio') { <section class="summary-grid" aria-label="Resumo financeiro">
+        <article class="balance-card">
+          <div class="balance-head"><span>Saldo disponível</span><span class="balance-icon">◈</span></div>
+          <div class="balance-value">{{ formatarMoeda(saldo()) }}</div>
+          <div class="balance-foot"><span class="balance-trend">↗</span> Resultado das suas movimentações</div>
+          <div class="balance-orbit orbit-one"></div><div class="balance-orbit orbit-two"></div>
+        </article>
+        <article class="summary-card income-card">
+          <div class="summary-card-top"><span class="summary-icon income-icon">↙</span><span class="summary-period">TOTAL</span></div>
+          <span class="summary-label">Entradas</span><strong>{{ formatarMoeda(receitas()) }}</strong><small>Receitas registradas</small>
+        </article>
+        <article class="summary-card expense-card">
+          <div class="summary-card-top"><span class="summary-icon expense-icon">↗</span><span class="summary-period">TOTAL</span></div>
+          <span class="summary-label">Saídas</span><strong>{{ formatarMoeda(despesas()) }}</strong><small>Despesas registradas</small>
+        </article>
+      </section> }
+
+      @if (pagina() === 'inicio' || pagina() === 'transacoes') { <section class="transactions-panel" id="transacoes">
+        <div class="panel-heading">
+          <div><span class="eyebrow">ACOMPANHAMENTO</span><h2>Suas transações</h2><p>Veja de perto cada movimento do seu dinheiro.</p></div>
+          <label class="search-box"><span aria-hidden="true">⌕</span><input type="search" placeholder="Buscar transação" aria-label="Buscar transação" [ngModel]="busca()" (ngModelChange)="busca.set($event)" /></label>
+        </div>
+        <div class="table-toolbar">
+          <div class="filter-tabs" aria-label="Filtrar transações">
+            <button type="button" [class.selected]="filtro() === 'Todas'" (click)="filtro.set('Todas')">Todas</button>
+            <button type="button" [class.selected]="filtro() === 'Receitas'" (click)="filtro.set('Receitas')">Entradas</button>
+            <button type="button" [class.selected]="filtro() === 'Despesas'" (click)="filtro.set('Despesas')">Saídas</button>
+          </div>
+          <span class="transaction-count">{{ visiveis().length }} {{ visiveis().length === 1 ? 'registro' : 'registros' }}</span>
+        </div>
+
+        <div class="transaction-list">
+          @if (carregando()) {
+            <div class="empty-state"><span class="loading-dot"></span> Carregando suas transações…</div>
+          } @else if (visiveis().length === 0) {
+            <div class="empty-state"><span class="empty-icon">↗</span><strong>{{ busca() ? 'Nenhum resultado por aqui' : 'Sua lista começa aqui' }}</strong><p>{{ busca() ? 'Tente buscar por outro nome ou categoria.' : 'Adicione sua primeira transação para acompanhar seu dinheiro.' }}</p>@if (!busca()) { <button class="button button-secondary" type="button" (click)="abrirNovaTransacao()">＋ Adicionar transação</button> }</div>
+          } @else {
+            <div class="transaction-row transaction-header"><span>DESCRIÇÃO</span><span>CATEGORIA</span><span>DATA</span><span>VALOR</span><span></span></div>
+            @for (item of visiveis(); track item.id) {
+              <article class="transaction-row">
+                <div class="transaction-name"><span class="transaction-type-icon" [class.income-type]="item.tipo === 'Receita'">{{ item.tipo === 'Receita' ? '↙' : '↗' }}</span><span><strong>{{ item.descricao }}</strong><small>{{ item.tipo === 'Receita' ? 'Entrada' : 'Saída' }}</small></span></div>
+                <span class="category-cell"><span class="category-dot" [class.income-dot]="item.tipo === 'Receita'"></span>{{ item.categoria || 'Sem categoria' }}</span>
+                <span class="date-cell">{{ formatarData(item.data) }}</span>
+                <strong class="amount-cell" [class.amount-income]="item.tipo === 'Receita'">{{ item.tipo === 'Receita' ? '+' : '−' }} {{ formatarMoeda(item.valor) }}</strong>
+                <div class="row-actions"><button type="button" [attr.aria-label]="'Editar ' + item.descricao" title="Editar" (click)="editar(item)">✎</button><button type="button" [attr.aria-label]="'Excluir ' + item.descricao" title="Excluir" (click)="excluir(item)">×</button></div>
+              </article>
+            }
+          }
+        </div>
+        <div class="panel-footer"><span>Seus registros são privados e vinculados à sua conta.</span><span class="footer-lock">▣</span></div>
+      </section> }
+
+      @if (pagina() === 'planejamento') {
+        <section class="planning-grid">
+          <article class="feature-panel">
+            <div class="panel-heading"><div><span class="eyebrow">LIMITE POR CATEGORIA</span><h2>Orçamentos mensais</h2><p>Compare seus gastos com o limite definido.</p></div></div>
+            <form class="feature-form" (ngSubmit)="criarOrcamento()"><input aria-label="Categoria" placeholder="Categoria (ex.: Alimentação)" [ngModel]="categoriaOrcamento()" (ngModelChange)="categoriaOrcamento.set($event)" name="categoriaOrcamento" required maxlength="100" /><input aria-label="Limite mensal" type="number" min="0.01" step="0.01" placeholder="Limite em R$" [ngModel]="limiteOrcamento()" (ngModelChange)="limiteOrcamento.set($event)" name="limiteOrcamento" required /><button class="button button-primary" type="submit">Criar orçamento</button></form>
+            @if (orcamentos().length === 0) { <p class="feature-empty">Nenhum orçamento cadastrado para esta conta.</p> }
+            @for (item of orcamentos(); track item.id) { <div class="budget-item"><div class="feature-item-head"><strong>{{ item.categoria }}</strong><span>{{ formatarMoeda(item.gastoNoMes) }} / {{ formatarMoeda(item.limiteMensal) }}</span><button type="button" title="Excluir orçamento" (click)="excluirOrcamento(item)">×</button></div><div class="progress-track"><i [class.progress-warning]="item.percentualUsado >= 80" [style.width.%]="Math.min(item.percentualUsado, 100)"></i></div><small>{{ item.percentualUsado }}% do limite usado</small></div> }
+          </article>
+          <article class="feature-panel">
+            <div class="panel-heading"><div><span class="eyebrow">CONTAS A VENCER</span><h2>Despesas recorrentes</h2><p>Registre a conta e avance o vencimento ao pagar.</p></div></div>
+            <form class="feature-form recurring-form" (ngSubmit)="criarRecorrencia()"><input aria-label="Descrição da conta" placeholder="Descrição" [(ngModel)]="formularioRecorrencia.descricao" name="recDescricao" required maxlength="200" /><input aria-label="Categoria da conta" placeholder="Categoria" [(ngModel)]="formularioRecorrencia.categoria" name="recCategoria" required maxlength="100" /><input aria-label="Valor da conta" type="number" min="0.01" step="0.01" placeholder="Valor R$" [(ngModel)]="formularioRecorrencia.valor" name="recValor" required /><label class="date-input-label">Próximo vencimento<input aria-label="Próximo vencimento" type="date" [(ngModel)]="formularioRecorrencia.proximoVencimento" name="recData" required /></label><button class="button button-primary" type="submit">Adicionar conta</button></form>
+            @if (recorrencias().length === 0) { <p class="feature-empty">Nenhuma conta recorrente cadastrada.</p> }
+            @for (item of recorrencias(); track item.id) { <div class="recurring-item"><span class="due-date">{{ formatarData(item.proximoVencimento) }}</span><span class="recurring-copy"><strong>{{ item.descricao }}</strong><small>{{ item.categoria }} · {{ formatarMoeda(item.valor) }}</small></span><button class="mini-action" type="button" (click)="pagarRecorrencia(item)">Pagar</button><button class="icon-action" type="button" aria-label="Excluir conta" (click)="excluirRecorrencia(item)">×</button></div> }
+          </article>
+          <article class="feature-panel goals-panel">
+            <div class="panel-heading"><div><span class="eyebrow">SEU PRÓXIMO PASSO</span><h2>Metas de economia</h2><p>Acompanhe o que você está construindo.</p></div></div>
+            <form class="feature-form" (ngSubmit)="criarMeta()"><input aria-label="Nome da meta" placeholder="Nome da meta (ex.: Reserva)" [(ngModel)]="formularioMeta.nome" name="metaNome" required maxlength="120" /><input aria-label="Valor alvo" type="number" min="0.01" step="0.01" placeholder="Valor-alvo R$" [(ngModel)]="formularioMeta.valorAlvo" name="metaValor" required /><label class="date-input-label">Prazo opcional<input aria-label="Prazo da meta" type="date" [(ngModel)]="formularioMeta.prazo" name="metaPrazo" /></label><button class="button button-primary" type="submit">Criar meta</button></form>
+            @if (metas().length === 0) { <p class="feature-empty">Crie uma meta para acompanhar seu progresso.</p> }
+            @for (meta of metas(); track meta.id) { <div class="goal-item"><div class="feature-item-head"><strong>{{ meta.nome }}</strong><span>{{ formatarMoeda(meta.valorGuardado) }} / {{ formatarMoeda(meta.valorAlvo) }}</span><button type="button" title="Excluir meta" (click)="excluirMeta(meta)">×</button></div><div class="progress-track"><i [style.width.%]="percentualMeta(meta)"></i></div><div class="goal-foot"><small>{{ percentualMeta(meta) }}% da meta@if (meta.prazo) { · até {{ formatarData(meta.prazo) }} }</small>@if (metaDoDeposito() === meta.id) { <span class="deposit-inline"><input type="number" min="0.01" step="0.01" placeholder="R$" aria-label="Valor do depósito" [ngModel]="deposito()" (ngModelChange)="deposito.set($event)" [ngModelOptions]="{standalone: true}" /><button type="button" (click)="salvarDeposito()">Salvar</button><button type="button" (click)="cancelarDeposito()">Cancelar</button></span> } @else { <button type="button" class="text-action" (click)="iniciarDeposito(meta)">＋ Adicionar valor</button> }</div></div> }
+          </article>
+        </section>
+      }
+
+      @if (pagina() === 'relatorios') {
+        <section class="feature-panel report-panel">
+          <div class="report-heading"><div><span class="eyebrow">ANÁLISE FINANCEIRA</span><h2>Resumo por mês</h2><p>Receitas, despesas e saldo das suas transações.</p></div><label class="month-picker">Mês<input type="month" [ngModel]="mesSelecionado()" (ngModelChange)="mudarMes($event)" /></label></div>
+          @if (relatorio(); as r) {
+            <div class="report-summary"><article><small>RECEITAS</small><strong class="report-income">{{ formatarMoeda(r.receitas) }}</strong></article><article><small>DESPESAS</small><strong class="report-expense">{{ formatarMoeda(r.despesas) }}</strong></article><article><small>SALDO</small><strong>{{ formatarMoeda(r.saldo) }}</strong></article></div>
+            <div class="report-actions"><button class="button button-secondary" type="button" (click)="exportarCsv()">Exportar CSV</button><button class="button button-secondary" type="button" (click)="imprimirRelatorio()">Imprimir / salvar PDF</button></div>
+            <div class="report-content"><div><h3>Por categoria</h3>@if (!r.categorias.length) { <p class="feature-empty">Sem movimentações neste mês.</p> } @for (item of r.categorias; track item.categoria) { <div class="category-report"><strong>{{ item.categoria }}</strong><span class="report-income">{{ formatarMoeda(item.receitas) }}</span><span class="report-expense">{{ formatarMoeda(item.despesas) }}</span></div> }</div><div><h3>Últimos seis meses</h3><div class="history-chart">@for (item of r.historico; track item.mes) { @let maximo = Math.max(item.receitas, item.despesas, 1); <div class="history-column" [title]="item.mes + ': receitas ' + formatarMoeda(item.receitas) + ', despesas ' + formatarMoeda(item.despesas)"><div class="history-bars"><i class="history-income" [style.height.%]="item.receitas / maximo * 100"></i><i class="history-expense" [style.height.%]="item.despesas / maximo * 100"></i></div><small>{{ mesLegivel(item.mes) }}</small></div> }</div><div class="chart-legend"><span><i class="history-income"></i> Receitas</span><span><i class="history-expense"></i> Despesas</span></div></div></div>
+          }
+        </section>
+      }
+
+      <footer class="dashboard-footer"><span>Um bom plano começa com saber onde você está.</span><span>FINANÇAS PESSOAIS · {{ ano }}</span></footer>
+    </main>
+  </div>
+}
+
+@if (modalAberto()) {
+  <div class="modal-backdrop" (click)="fecharModal()" (keydown.escape)="fecharModal()">
+    <section class="transaction-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" (click)="$event.stopPropagation()">
+      <div class="modal-heading"><div><span class="eyebrow">{{ editandoId() ? 'ATUALIZE OS DETALHES' : 'NOVO REGISTRO' }}</span><h2 id="modal-title">{{ editandoId() ? 'Editar transação' : 'Adicionar transação' }}</h2></div><button class="modal-close" type="button" aria-label="Fechar" (click)="fecharModal()">×</button></div>
+      <form class="transaction-form" (ngSubmit)="salvarTransacao()">
+        <label for="descricao">Descrição</label><input id="descricao" name="descricao" [(ngModel)]="formulario.descricao" required maxlength="200" placeholder="Ex.: Mercado, salário…" />
+        <div class="form-two-columns"><div><label for="tipo">Tipo</label><select id="tipo" name="tipo" [(ngModel)]="formulario.tipo"><option value="Despesa">Saída</option><option value="Receita">Entrada</option></select></div><div><label for="valor">Valor</label><div class="currency-input"><span>R$</span><input id="valor" name="valor" type="number" min="0.01" step="0.01" [(ngModel)]="formulario.valor" required placeholder="0,00" /></div></div></div>
+        <div class="form-two-columns"><div><label for="categoria">Categoria <span class="optional-label">opcional</span></label><input id="categoria" name="categoria" [(ngModel)]="formulario.categoria" maxlength="100" placeholder="Ex.: Casa" /></div><div><label for="data">Data</label><input id="data" name="data" type="date" [(ngModel)]="formulario.data" required /></div></div>
+        @if (mensagemErro()) { <div class="alert alert-error" role="alert">{{ mensagemErro() }}</div> }
+        <div class="modal-actions"><button class="button button-quiet" type="button" (click)="fecharModal()">Cancelar</button><button class="button button-primary" type="submit" [disabled]="enviando()">{{ enviando() ? 'Salvando…' : editandoId() ? 'Salvar alterações' : 'Adicionar registro' }}</button></div>
+      </form>
+    </section>
+  </div>
+}

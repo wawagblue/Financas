@@ -1,0 +1,19 @@
+bin/
+obj/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+TestResults/
+
+# Segredos
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+
+# Frontend
+node_modules/
+dist/
+.angular/
