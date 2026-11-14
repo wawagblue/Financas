@@ -132,6 +132,25 @@ A suíte atual cobre a API financeira. Ainda não há uma suíte automatizada pr
 
 As rotas financeiras exigem Bearer JWT e filtram os registros pelo identificador do usuário autenticado. Consulte o Swagger da API financeira para os schemas e respostas.
 
+### Contrato de integração para os outros módulos
+
+O frontend deve chamar o gateway em `/gateway/auth/...`; o YARP remove o prefixo `/gateway/auth` antes de encaminhar a requisição ao Auth. Assim, por exemplo, `/gateway/auth/api/v1/auth/login` chega ao Auth como `/api/v1/auth/login`. O frontend não deve chamar o container Auth diretamente.
+
+| Ação | Método e rota pelo gateway | Corpo e resultado normal |
+|---|---|---|
+| Cadastro | `POST /gateway/auth/api/v1/users` | `{"nome":"Ana Demo","email":"ana@example.test","password":"senha-com-12-caracteres"}` → `201`; email duplicado → `409` |
+| Login | `POST /gateway/auth/api/v1/auth/login` | `{"email":"ana@example.test","password":"senha-com-12-caracteres"}` → `200`; credencial inválida → `401` |
+| Renovar sessão | `POST /gateway/auth/api/v1/auth/refresh-token` | `{"refreshToken":"<refresh-token-atual>"}` → `200`; token inválido → `401` |
+| Logout | `POST /gateway/auth/api/v1/auth/logout` | `{"refreshToken":"<refresh-token-atual>"}` → `204` |
+| Consultar perfil | `GET /gateway/auth/api/v1/users/me` | Sem corpo; requer Bearer; responde `200` ou `401` |
+| Atualizar perfil | `PUT /gateway/auth/api/v1/users/me` | `{"nome":"Ana","email":"ana@example.test"}`; requer Bearer |
+
+Login retorna `accessToken`, `refreshToken` e `accessTokenExpiresAtUtc`. Envie o access token nas chamadas protegidas como `Authorization: Bearer <accessToken>`. O refresh token é um valor aleatório de 64 bytes; somente seu hash SHA-256 é persistido. Ele é rotacionado: depois de renovar, substitua os dois tokens pelos valores novos; o refresh token anterior deixa de valer. Logout revoga o refresh token enviado e responde `204`. O logout não invalida um access token já emitido; ele continua válido por até 15 minutos, e o frontend deve limpar a sessão imediatamente.
+
+O JWT usa HS256 e contém o identificador do usuário na claim `sub`. Todo serviço que guarda dados do usuário deve validar o JWT, extrair `sub` e usar esse valor como dono dos registros. Não use um `userId` fornecido pelo frontend nem confie em headers como `X-User-Id`. O gateway e a API financeira já validam o token; os módulos também devem validar a identidade ao proteger seus próprios endpoints.
+
+Para validar tokens, os serviços precisam concordar em `JWT_SECRET`, issuer (`TccProway`) e audience (`TccProway.Client`). Na API financeira, configure `JWT_SECRET`, `JWT_ISSUER` e `JWT_AUDIENCE`; no Auth, `JWT_SECRET`, `Jwt__Issuer` e `Jwt__Audience`. O Compose de desenvolvimento já compartilha e mapeia esses valores. Como HS256 é simétrico, qualquer serviço que recebe o segredo também poderia emitir tokens; isso é aceitável para a demonstração controlada, mas deve ser revisto antes de uma implantação distribuída em produção.
+
 ## Estado da autenticação
 
 A autenticação está implementada como MVP funcional: cadastro, login, perfil, senha com BCrypt, access token JWT, refresh token persistido como hash, rotação no refresh e revogação do refresh token no logout. A API financeira e o gateway validam assinatura, issuer, audience e expiração. O access token dura 15 minutos e o refresh token, 7 dias por padrão.
@@ -147,6 +166,16 @@ Ainda não considero o Auth pronto para produção. Antes disso, priorize:
 7. Separar o banco/schema do Auth do banco da API financeira e definir migrações de produção como etapa de deploy.
 
 O login e as rotas protegidas funcionam no ambiente local integrado descrito acima. A classificação de MVP não substitui uma auditoria de segurança antes de expor o serviço à internet.
+
+### Checklist para a apresentação
+
+1. Suba o ambiente com `docker-compose.development.yml` e confirme que o status mostra Autenticação disponível.
+2. Cadastre uma conta de demonstração ou rode `scripts/popular-demo.ps1` para inserir dados fictícios.
+3. Demonstre cadastro, login, carregamento do perfil e acesso às transações com sessão ativa.
+4. Renove a sessão usando o refresh token e confirme que a aplicação substitui o token antigo.
+5. Faça logout e confirme que uma chamada protegida sem access token recebe `401`.
+
+Esses fluxos bastam para a demonstração acadêmica. Deixe os itens de produção acima como evolução documentada; priorize agora a integração visual no Angular e a repetição desta checklist no ambiente que será usado na banca.
 
 ## Configuração local
 
